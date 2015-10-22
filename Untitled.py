@@ -174,7 +174,7 @@ dt=0.005
             
 def main():
     global dt
-    s=Square(np.array([5.9,5.9]),0.1,np.array([-1,2]),1,60,0.2,100,3)
+    s=Square(np.array([5.9,5.9]),0.1,np.array([-1,2]),1,70,0.2,100,3)
     s.createsquare()
     s.createboundary()
     fig=pylab.figure(1)
