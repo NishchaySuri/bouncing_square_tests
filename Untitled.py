@@ -4,7 +4,6 @@ import math
 matplotlib.use('TkAgg')
 import pylab
 from matplotlib.animation import FuncAnimation
-from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
 class Square():
@@ -30,8 +29,8 @@ class Square():
 
     def createsquare(self):
         self.pa=np.ndarray((100,2))
-        startx=1
-        starty=2
+        startx=7
+        starty=5
         i=0
         for y in range(0,10):
             for x in range(0,10):
@@ -81,7 +80,7 @@ class Square():
         
 
     def neighbour_box_co(self,arrayij): # Takes coordinates of a box and returns its neighbouring boxes
-        neighbours=[[arrayij[0]-1,arrayij[1]+1],[arrayij[0],arrayij[1]+1],[arrayij[0]+1,arrayij[1]+1],[arrayij[0]+1,arrayij[1]],[arrayij[0]-1,arrayij[1]],[arrayij[0]-1,arrayij[1]-1],[arrayij[0],arrayij[1]-1],[arrayij[0]+1,arrayij[1]-1]]
+        neighbours=[[arrayij[0],arrayij[1]],[arrayij[0]-1,arrayij[1]+1],[arrayij[0],arrayij[1]+1],[arrayij[0]+1,arrayij[1]+1],[arrayij[0]+1,arrayij[1]],[arrayij[0]-1,arrayij[1]],[arrayij[0]-1,arrayij[1]-1],[arrayij[0],arrayij[1]-1],[arrayij[0]+1,arrayij[1]-1]]
         return neighbours
 
     def par_lo(self,arrayij): # takes box's coordinates and returns particles location
@@ -118,9 +117,10 @@ class Square():
         for i in range(0,100):
             neighbours=self.neighbour_box_co(self.box_co(self.pa[i]))
             for k in range(0,len(neighbours)):
-                if self.par_lo(neighbours[k])[0]!=0 and self.par_lo(neighbours[k])[1]!=0  :
-                    if np.sqrt(np.dot(self.pa[i]-self.par_lo(neighbours[k]),self.pa[i]-self.par_lo(neighbours[k])))<self.d: #checks for collision
-                        pairs.append([i,self.par_lo(neighbours[k])[0],self.par_lo(neighbours[k])[1]])
+                x,y=self.par_lo(neighbours[k])[0],self.par_lo(neighbours[k])[1]
+                if x!=0 and y!=0:
+                    if np.sqrt(np.dot(self.pa[i]-np.array([x,y]),self.pa[i]-np.array([x,y])))<self.d: #checks for collision
+                        pairs.append([i,x,y])
         self.collided(pairs)
         return
 
@@ -174,7 +174,7 @@ dt=0.005
             
 def main():
     global dt
-    s=Square(np.array([5.9,5.9]),0.1,np.array([-1,2]),1,70,0.2,100,3)
+    s=Square(np.array([5.9,5.9]),0.1,np.array([1,0]),1,1000,0.2,2,1)
     s.createsquare()
     s.createboundary()
     fig=pylab.figure(1)
@@ -194,7 +194,7 @@ def main():
         s.check_collision()
         return(scatter,)
 
-    anim=FuncAnimation(fig,animate,frames=200,init_func=init,interval=dt*1000,blit=False)
+    anim=FuncAnimation(fig,animate,frames=200,init_func=init,interval=dt*1000,blit=True)
 
     pylab.show()
 
