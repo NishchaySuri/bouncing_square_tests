@@ -175,7 +175,7 @@ class Square():
             
 def main():
     dt=0.001
-    s=Square(np.array([5.9,5.9]),0.1,np.array([1,2]),1,200,0.2,10,1,0.005)
+    s=Square(np.array([5.9,5.9]),0.1,np.array([1,2]),1,200,0.2,10,20,dt)
     s.createsquare()
     s.createboundary()
     fig=pylab.figure(1)
