@@ -7,7 +7,8 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 
 class Square():
-    def __init__(self,poscm,radius,vcm,phi,k,d,eta,kt):
+    def __init__(self,poscm,radius,vcm,phi,k,d,eta,kt,dt):
+        self.dt=0.005
         self.pcm=np.array([0,0])
         self.vcm=vcm
         self.acm=np.array([0,0])
@@ -26,6 +27,9 @@ class Square():
         self.box=np.zeros_like(self.box)
         self.pa=np.ndarray((100,2))
         self.pa=np.zeros_like(self.pa)
+        self.boxx=np.zeros_like(np.ndarray((10/d+10,10/d+10)))
+        self.boxy=np.zeros_like(np.ndarray((10/d+10,10/d+10)))
+
 
     def createsquare(self):
         self.pa=np.ndarray((100,2))
@@ -72,10 +76,7 @@ class Square():
             for p in range(5,46):
                 self.ba[715+p+o*41,0]=self.d*p
                 self.ba[715+p+o*41,1]=10-self.d*o
-                                
-        
-                
-        
+                                       
         
         
 
@@ -83,15 +84,15 @@ class Square():
         neighbours=[[arrayij[0],arrayij[1]],[arrayij[0]-1,arrayij[1]+1],[arrayij[0],arrayij[1]+1],[arrayij[0]+1,arrayij[1]+1],[arrayij[0]+1,arrayij[1]],[arrayij[0]-1,arrayij[1]],[arrayij[0]-1,arrayij[1]-1],[arrayij[0],arrayij[1]-1],[arrayij[0]+1,arrayij[1]-1]]
         return neighbours
 
-    def par_lo(self,arrayij): # takes box's coordinates and returns particles location
+
+    def boxlist_update(self): #assigns box number to each particle at the end of each time step
         d=self.d
-##        for k in range(0,100):
-##            if self.pa[k,0]>=self.d*arrayij[0] and self.pa[k,0]<self.d*(arrayij[0]+1) and self.pa[k,1]>=self.d*arrayij[1] and self.pa[k,1]<self.d*(arrayij[1]+1):
-##                return(self.pa[k])
-        for k in range(0,1000):
-            if self.ba[k,0]>=self.d*arrayij[0] and self.ba[k,0]<self.d*(arrayij[0]+1) and self.ba[k,1]>=self.d*arrayij[1] and self.ba[k,1]<self.d*(arrayij[1]+1):
-                return(self.ba[k])
-        return([0,0])
+        self.boxx,self.boxy=np.zeros_like(np.ndarray((10/d+10,10/d+10))),np.zeros_like(np.ndarray((10/d+10,10/d+10)))
+        for i in range(0,1000):
+            x,y=self.box_co(self.ba[i])
+            self.boxx[x,y]=self.ba[i,0]
+            self.boxy[x,y]=self.ba[i,1]
+            
 
     def box_co(self,array):# takes particle's location and returns box's coordinates i and j
         x=int(array[0]/self.d)
@@ -100,7 +101,7 @@ class Square():
 
 
     def move(self):
-        global dt
+        dt=self.dt
         self.theta=self.thetadot*dt+self.theta
         self.pcm=self.pcm+self.vcm*dt
         for i in range(0,100):
@@ -111,14 +112,14 @@ class Square():
 
 
     def check_collision(self):
-        global dt
+        dt=self.dt
         neighbours=[]
         pairs=[]
         for i in range(0,100):
             neighbours=self.neighbour_box_co(self.box_co(self.pa[i]))
             for k in range(0,len(neighbours)):
-                x,y=self.par_lo(neighbours[k])[0],self.par_lo(neighbours[k])[1]
-                if x!=0 and y!=0:
+                if self.boxx[neighbours[k][0],neighbours[k][1]]!=0: #Checks if the neighbouring box has a particle
+                    x,y=self.boxx[neighbours[k][0],neighbours[k][1]],self.boxy[neighbours[k][0],neighbours[k][1]]
                     if np.sqrt(np.dot(self.pa[i]-np.array([x,y]),self.pa[i]-np.array([x,y])))<self.d: #checks for collision
                         pairs.append([i,x,y])
         self.collided(pairs)
@@ -154,6 +155,7 @@ class Square():
         
 
     def collided(self,pairs):
+        dt=self.dt
         F=np.array([0,0]) #total force
         T=0 #total torque
         for i in range(0,len(pairs)):
@@ -169,12 +171,11 @@ class Square():
             
             
 
-dt=0.005
             
             
 def main():
-    global dt
-    s=Square(np.array([5.9,5.9]),0.1,np.array([1,0]),1,1000,0.2,2,1)
+    dt=0.001
+    s=Square(np.array([5.9,5.9]),0.1,np.array([1,2]),1,200,0.2,10,1,0.005)
     s.createsquare()
     s.createboundary()
     fig=pylab.figure(1)
@@ -192,14 +193,15 @@ def main():
         scatter.set_data(s.pa[:,0],s.pa[:,1])
         s.move()
         s.check_collision()
+        s.boxlist_update()
         return(scatter,)
 
     anim=FuncAnimation(fig,animate,frames=200,init_func=init,interval=dt*1000,blit=True)
 
     pylab.show()
 
-
-main()
+if __name__=='__main__':
+    main()
 
 
         
